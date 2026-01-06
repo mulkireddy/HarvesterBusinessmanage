@@ -18,7 +18,10 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- SheetJS for Excel Export -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <!-- html2canvas for Receipt Gen -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -35,6 +38,9 @@
                 <button class="nav-btn" data-tab="expenses">
                     <i class="ph ph-receipt"></i> Expenses
                 </button>
+                <button class="nav-btn" data-tab="analytics">
+                    <i class="ph ph-chart-bar"></i> Analytics
+                </button>
             </nav>
         </header>
 
@@ -45,9 +51,10 @@
                     <div class="filter-group">
                         <div class="search-bar">
                             <i class="ph ph-magnifying-glass"></i>
-                            <input type="text" id="farmer-search" placeholder="Search...">
+                            <input type="text" id="farmer-search" placeholder="Search name, place...">
                         </div>
                         <div class="date-filters">
+                            <label><i class="ph ph-calendar"></i> From:</label>
                             <input type="date" id="date-start" title="Start Date">
                             <span>to</span>
                             <input type="date" id="date-end" title="End Date">
@@ -112,6 +119,7 @@
                                 <th>Date</th>
                                 <th>Name</th>
                                 <th>Place</th>
+                                <th>Crop</th>
                                 <th>Contact</th>
                                 <th>Acres</th>
                                 <th>Total</th>
@@ -129,6 +137,11 @@
                         <i class="ph ph-notebook"></i>
                         <p>No records found. Add a new farmer to get started.</p>
                     </div>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="mobile-cards" id="farmers-mobile-cards">
+                    <!-- Cards will be injected here -->
                 </div>
             </section>
 
@@ -177,6 +190,24 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics-view" class="view">
+                <div class="toolbar">
+                    <h2>Business Analytics</h2>
+                </div>
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="card chart-card">
+                        <h3>Monthly Cash Flow</h3>
+                        <canvas id="cashflow-chart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h3>Crop Distribution</h3>
+                        <canvas id="crop-chart"></canvas>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <!-- Modals -->
@@ -206,12 +237,16 @@
                             <input type="text" id="f-place" required>
                         </div>
                         <div class="form-group">
+                            <label>Type of Crop</label>
+                            <input type="text" id="f-crop" placeholder="e.g. Paddy, Maize" required>
+                        </div>
+                        <div class="form-group">
                             <label>No. of Acres</label>
                             <input type="number" step="0.01" id="f-acres" required>
                         </div>
                         <div class="form-group">
                             <label>Cost per Acre (₹)</label>
-                            <input type="number" id="f-rate" value="2000" required>
+                            <input type="number" id="f-rate" placeholder="Enter rate" required>
                         </div>
                         <div class="form-group">
                             <label>Total Cost (₹)</label>
@@ -229,6 +264,11 @@
                             <label>Payment Status</label>
                             <input type="text" id="f-status" readonly class="readonly-input">
                         </div>
+                        <div class="form-group full-width" style="display:flex; align-items:center; gap:10px;">
+                            <input type="checkbox" id="f-settled" style="width:20px; height:20px;">
+                            <label for="f-settled" style="cursor:pointer; color:var(--text-main);">Mark as Fully Settled
+                                (ignore small balances)</label>
+                        </div>
                         <div class="form-group full-width">
                             <label>Additional Comments</label>
                             <textarea id="f-comments" rows="2"></textarea>
@@ -236,7 +276,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-text" data-close="farmer-modal">Cancel</button>
-                        <button type="submit" class="btn-primary">Save Record</button>
+                        <button type="submit" class="btn-primary" id="save-farmer-btn"><i
+                                class="ph ph-check-circle"></i> Save Record</button>
                     </div>
                 </form>
             </div>
@@ -274,12 +315,33 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-text" data-close="expense-modal">Cancel</button>
-                        <button type="submit" class="btn-primary">Save Expense</button>
+                        <button type="submit" class="btn-primary" id="save-expense-btn"><i
+                                class="ph ph-check-circle"></i> Save Expense</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <div class="mobile-nav-inner">
+            <button class="mobile-nav-btn active" data-tab="farmers">
+                <i class="ph ph-users"></i>
+                <span>Farmers</span>
+            </button>
+            <button class="mobile-nav-btn" data-tab="expenses">
+                <i class="ph ph-receipt"></i>
+                <span>Expenses</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Floating Action Button -->
+    <button class="fab-add" id="fab-add-btn" title="Add New">
+        <i class="ph ph-plus"></i>
+    </button>
+
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
