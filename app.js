@@ -92,7 +92,8 @@ function renderFarmers() {
         // Text Match
         const matchesText = f.name.toLowerCase().includes(term) ||
             f.place.toLowerCase().includes(term) ||
-            f.contact.includes(term);
+            (f.contact && f.contact.includes(term)) ||
+            (f.crop && f.crop.toLowerCase().includes(term));
 
         // Date Match
         let matchesDate = true;
@@ -340,6 +341,12 @@ function saveFarmerRecord() {
         return false;
     }
 
+    const contact = document.getElementById('f-contact').value;
+    if (!/^\d{10}$/.test(contact)) {
+        alert('Please enter a valid 10-digit mobile number.');
+        return false;
+    }
+
     const id = document.getElementById('f-id').value;
     const total = Number(document.getElementById('f-total').value);
     const paid = Number(document.getElementById('f-paid').value) || 0;
@@ -570,6 +577,7 @@ document.getElementById('save-db-btn').addEventListener('click', async () => {
         };
         fileHandle = await window.showSaveFilePicker(opts);
         await save();
+        localStorage.setItem('hm_last_backup', new Date().toISOString()); // Mark backup time
         updateFileStatus(fileHandle.name);
         alert('Database connected! Changes will now auto-save to this file.');
     } catch (err) {
@@ -844,6 +852,48 @@ function renderCharts() {
             }
         }
     });
+
+    // 5. Expense Breakdown Chart
+    // Prepare Data
+    const expCats = {};
+    AppData.expenses.forEach(e => {
+        const c = e.category || 'Misc';
+        expCats[c] = (expCats[c] || 0) + Number(e.amount);
+    });
+
+    // Add canvas dynamically if not exists (to avoid HTML edit step for canvas)
+    let ctx3Container = document.getElementById('expense-chart-container');
+    if (!ctx3Container) {
+        // Find parent grid
+        const grid = document.querySelector('.charts-grid');
+        const card = document.createElement('div');
+        card.className = 'card chart-card';
+        card.innerHTML = '<h3>Expense Breakdown</h3><canvas id="expense-chart"></canvas>';
+        card.id = 'expense-chart-container';
+        grid.appendChild(card);
+    }
+
+    const expChartCanvas = document.getElementById('expense-chart');
+    if (window.expChartInstance) window.expChartInstance.destroy();
+
+    window.expChartInstance = new Chart(expChartCanvas, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(expCats),
+            datasets: [{
+                data: Object.values(expCats),
+                backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#ec4899', '#8b5cf6', '#6366f1'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'right', labels: { color: '#94a3b8' } }
+            }
+        }
+    });
+
 }
 
 // --- Theme & Init ---
@@ -868,6 +918,48 @@ themeToggle.addEventListener('click', () => {
         icon.classList.replace('ph-moon', 'ph-sun');
     }
 });
+
+// Backup Reminder Logic
+try {
+    const lastBackup = localStorage.getItem('hm_last_backup');
+    if (lastBackup) {
+        const days = (new Date() - new Date(lastBackup)) / (1000 * 60 * 60 * 24);
+        if (days > 7) {
+            setTimeout(() => {
+                if (confirm('⚠️ Backup Warning: You haven\'t saved a backup in over a week.\n\nDo you want to download a backup now?')) {
+                    document.getElementById('export-farmers-btn').click(); // Trigger export as backup proxy if DB not connected
+                }
+            }, 3000);
+        }
+    }
+} catch (e) { }
+
+// Share Backup Feature
+window.shareBackup = async () => {
+    const data = JSON.stringify(AppData, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const file = new File([blob], `harvester_backup_${new Date().toISOString().split('T')[0]}.json`, { type: 'application/json' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                files: [file],
+                title: 'Harvester Backup',
+                text: 'Here is my latest data backup.',
+            });
+        } catch (err) {
+            console.log('Share canceled', err);
+        }
+    } else {
+        // Fallback
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = file.name;
+        link.click();
+        alert('File downloaded. Please attach it to an email manually.');
+        window.location.href = `mailto:?subject=Harvester Backup&body=Please find the attached backup file.`;
+    }
+};
 
 // Initial Render
 renderFarmers();
