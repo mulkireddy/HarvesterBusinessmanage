@@ -298,6 +298,49 @@ body {
     font-family: inherit;
 }
 
+/* Quick Filters */
+.quick-filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.quick-filters::-webkit-scrollbar {
+    display: none;
+}
+
+.filter-tag {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.filter-tag:hover,
+.filter-tag.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.overdue-warning {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--accent-red);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
 /* Colors */
 .green-text {
     color: var(--primary);

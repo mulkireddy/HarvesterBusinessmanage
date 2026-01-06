@@ -132,6 +132,18 @@ function renderFarmers() {
         totalAcres += Number(f.acres);
         pendingPayment += Number(balance);
 
+        // Overdue Calculation
+        let overdueHtml = '';
+        if (balance > 0 && !f.isSettled) {
+            const diffTime = Math.abs(new Date() - new Date(f.date));
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 30) {
+                const duration = diffDays > 60 ? `${Math.floor(diffDays / 30)} months` : `${diffDays} days`;
+                overdueHtml = `<div class="overdue-warning"><i class="ph ph-warning"></i> Due ${duration}</div>`;
+            }
+        }
+
         // Desktop Table Row
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -143,7 +155,10 @@ function renderFarmers() {
             <td>${f.acres}</td>
             <td>${formatCurrency(f.total)}</td>
             <td class="green-text">${formatCurrency(f.paidAmount)}</td>
-            <td class="red-text"><strong>${formatCurrency(balance)}</strong></td>
+            <td class="red-text">
+                <strong>${formatCurrency(balance)}</strong>
+                ${overdueHtml}
+            </td>
             <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
             <td>
                 <button class="action-btn share" onclick="shareFarmer('${f.id}')" title="WhatsApp"><i class="ph ph-whatsapp-logo"></i></button>
@@ -181,7 +196,10 @@ function renderFarmers() {
                     </div>
                     <div class="farmer-card-row">
                         <span class="farmer-card-label">Balance</span>
-                        <span class="farmer-card-value red-text">${formatCurrency(balance)}</span>
+                        <div class="farmer-card-value red-text">
+                            ${formatCurrency(balance)}
+                            ${overdueHtml}
+                        </div>
                     </div>
                 </div>
                 <div class="farmer-card-footer">
@@ -415,6 +433,37 @@ document.getElementById('save-expense-btn').addEventListener('click', (e) => {
 document.getElementById('farmer-search').addEventListener('input', renderFarmers);
 document.getElementById('date-start').addEventListener('change', renderFarmers);
 document.getElementById('date-end').addEventListener('change', renderFarmers);
+
+window.setDateFilter = (range) => {
+    const today = new Date();
+    let start = '';
+    let end = '';
+
+    const formatDateInput = (date) => date.toISOString().split('T')[0];
+
+    document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
+    // Mark clicked button active (need to target event to do this properly, but simple force is ok for now or passing 'this' is tricky in inline onclick)
+    // Simplified: Just clearing all active for logic simplicity.
+
+    if (range === 'today') {
+        start = formatDateInput(today);
+        end = formatDateInput(today);
+    } else if (range === 'yesterday') {
+        const y = new Date(today);
+        y.setDate(y.getDate() - 1);
+        start = formatDateInput(y);
+        end = formatDateInput(y);
+    } else if (range === 'month') {
+        const m = new Date(today.getFullYear(), today.getMonth(), 1);
+        start = formatDateInput(m);
+        end = formatDateInput(today);
+    }
+    // 'all' leaves them empty
+
+    document.getElementById('date-start').value = start;
+    document.getElementById('date-end').value = end;
+    renderFarmers();
+};
 
 // --- Actions (Global) ---
 window.deleteFarmer = (id) => {

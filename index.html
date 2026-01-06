@@ -56,6 +56,12 @@
                             <i class="ph ph-magnifying-glass"></i>
                             <input type="text" id="farmer-search" placeholder="Search name, place...">
                         </div>
+                        <div class="quick-filters">
+                            <button class="filter-tag" onclick="setDateFilter('today')">Today</button>
+                            <button class="filter-tag" onclick="setDateFilter('yesterday')">Yesterday</button>
+                            <button class="filter-tag" onclick="setDateFilter('month')">This Month</button>
+                            <button class="filter-tag" onclick="setDateFilter('all')">All Time</button>
+                        </div>
                         <div class="date-filters">
                             <label><i class="ph ph-calendar"></i> From:</label>
                             <input type="date" id="date-start" title="Start Date">
