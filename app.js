@@ -93,7 +93,8 @@ function renderFarmers() {
         const matchesText = f.name.toLowerCase().includes(term) ||
             f.place.toLowerCase().includes(term) ||
             (f.contact && f.contact.includes(term)) ||
-            (f.crop && f.crop.toLowerCase().includes(term));
+            (f.crop && f.crop.toLowerCase().includes(term)) ||
+            (f.billNo && String(f.billNo).includes(term));
 
         // Date Match
         let matchesDate = true;
@@ -149,6 +150,7 @@ function renderFarmers() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${formatDate(f.date)}</td>
+            <td><span class="text-muted">#${f.billNo || '-'}</span></td>
             <td><strong>${f.name}</strong></td>
             <td>${f.place}</td>
             <td>${f.crop || '-'}</td>
@@ -351,17 +353,31 @@ function saveFarmerRecord() {
     const total = Number(document.getElementById('f-total').value);
     const paid = Number(document.getElementById('f-paid').value) || 0;
 
+    // Bill No Logic
+    let existingBillNo;
+    if (id) {
+        const existing = AppData.farmers.find(f => f.id === id);
+        if (existing) existingBillNo = existing.billNo;
+    }
+
+    let finalBillNo = existingBillNo;
+    if (!finalBillNo) {
+        // Find Max
+        const nums = AppData.farmers.map(f => Number(f.billNo) || 0);
+        const max = nums.length > 0 ? Math.max(...nums) : 0;
+        finalBillNo = max < 1000 ? 1001 : max + 1;
+    }
+
     const data = {
         id: id || crypto.randomUUID(),
+        billNo: finalBillNo,
         name: name,
         date: date,
         contact: document.getElementById('f-contact').value,
         place: place,
-        crop: crop,
+        crop: document.getElementById('f-crop').value || '',
         acres: acres,
         rate: rate,
-        total: total,
-        paidAmount: paid,
         total: total,
         paidAmount: paid,
         status: document.getElementById('f-status').value, // Used for display mainly
@@ -662,6 +678,7 @@ window.generateReceipt = async (id) => {
         </div>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
         <div style="margin-bottom: 15px;">
+            <p style="margin:5px 0; color: #666;"><strong>Bill No:</strong> #${f.billNo || 'N/A'}</p>
             <p style="margin:5px 0"><strong>Date:</strong> ${formatDate(f.date)}</p>
             <p style="margin:5px 0"><strong>Farmer:</strong> ${f.name}</p>
             <p style="margin:5px 0"><strong>Place:</strong> ${f.place}</p>
