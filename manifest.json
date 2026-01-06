@@ -1,0 +1,20 @@
+{
+    "name": "Harvester Manager",
+    "short_name": "HarvesterMgr",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#10b981",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/628/628283.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/628/628283.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
