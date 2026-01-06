@@ -680,17 +680,18 @@ function renderCharts() {
     const revData = sortedKeys.map(k => monthlyData[k].revenue);
     const expData = sortedKeys.map(k => monthlyData[k].expenses);
 
-    // 2. Prepare Data for Crops
-    const cropCounts = {};
+    // 2. Prepare Data for Crops (Sum of Acres)
+    const cropAcres = {};
     AppData.farmers.forEach(f => {
         const c = f.crop ? f.crop.trim().toLowerCase() : 'Unknown';
         // Capitalize
         const label = c.charAt(0).toUpperCase() + c.slice(1);
-        cropCounts[label] = (cropCounts[label] || 0) + 1;
+        const acres = parseFloat(f.acres) || 0;
+        cropAcres[label] = (cropAcres[label] || 0) + acres;
     });
 
-    const cropLabels = Object.keys(cropCounts);
-    const cropData = Object.values(cropCounts);
+    const cropLabels = Object.keys(cropAcres);
+    const cropData = Object.values(cropAcres);
 
     // 3. Render Cash Flow Chart
     const ctx1 = document.getElementById('cashflow-chart').getContext('2d');
@@ -755,6 +756,13 @@ function renderCharts() {
                 legend: {
                     position: 'right',
                     labels: { color: '#94a3b8' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return ` ${context.label}: ${context.raw.toFixed(2)} Acres`;
+                        }
+                    }
                 }
             }
         }
