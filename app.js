@@ -203,6 +203,20 @@ function renderFarmers() {
     document.getElementById('total-revenue').textContent = formatCurrency(totalRev);
     document.getElementById('total-acres').textContent = totalAcres.toFixed(1);
     document.getElementById('pending-payment').textContent = formatCurrency(pendingPayment);
+
+    // Update Autocomplete Lists
+    updateSummaryLists();
+}
+
+function updateSummaryLists() {
+    const places = [...new Set(AppData.farmers.map(f => f.place).filter(Boolean))].sort();
+    const crops = [...new Set(AppData.farmers.map(f => f.crop).filter(Boolean))].sort();
+
+    const placeList = document.getElementById('place-list');
+    const cropList = document.getElementById('crop-list');
+
+    if (placeList) placeList.innerHTML = places.map(p => `<option value="${p}">`).join('');
+    if (cropList) cropList.innerHTML = crops.map(c => `<option value="${c}">`).join('');
 }
 
 // --- Logic: Expenses ---
@@ -663,6 +677,20 @@ function renderCharts() {
         monthlyData[key].revenue += Number(f.paidAmount || 0); // Cash collected
     });
 
+    // Gross Totals for Net Profit
+    let totalRevenueV = 0;
+    let totalExpensesV = 0;
+
+    AppData.farmers.forEach(f => totalRevenueV += (f.paidAmount || 0));
+    AppData.expenses.forEach(e => totalExpensesV += Number(e.amount));
+
+    const profit = totalRevenueV - totalExpensesV;
+    const profitEl = document.getElementById('net-profit');
+    if (profitEl) {
+        profitEl.textContent = formatCurrency(profit);
+        profitEl.style.color = profit >= 0 ? '#10b981' : '#ef4444';
+    }
+
     // Expenses
     AppData.expenses.forEach(e => {
         const d = new Date(e.date);
@@ -769,6 +797,29 @@ function renderCharts() {
     });
 }
 
-// --- Init ---
+// --- Theme & Init ---
+const themeToggle = document.getElementById('theme-toggle');
+const body = document.body;
+const icon = themeToggle.querySelector('i');
+
+// Load Theme
+if (localStorage.getItem('hm_theme') === 'light') {
+    body.classList.add('light-mode');
+    icon.classList.replace('ph-sun', 'ph-moon');
+}
+
+themeToggle.addEventListener('click', () => {
+    body.classList.toggle('light-mode');
+    const isLight = body.classList.contains('light-mode');
+    localStorage.setItem('hm_theme', isLight ? 'light' : 'dark');
+
+    if (isLight) {
+        icon.classList.replace('ph-sun', 'ph-moon');
+    } else {
+        icon.classList.replace('ph-moon', 'ph-sun');
+    }
+});
+
+// Initial Render
 renderFarmers();
 renderExpenses();

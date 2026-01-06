@@ -31,6 +31,9 @@
                 <i class="ph ph-plant"></i>
                 <h1>Harvester<span>Manager</span></h1>
             </div>
+            <button class="theme-toggle" id="theme-toggle" title="Toggle Theme">
+                <i class="ph ph-sun"></i>
+            </button>
             <nav class="main-nav">
                 <button class="nav-btn active" data-tab="farmers">
                     <i class="ph ph-users"></i> Farmers
@@ -234,11 +237,11 @@
                         </div>
                         <div class="form-group">
                             <label>Place/Village</label>
-                            <input type="text" id="f-place" required>
+                            <input type="text" id="f-place" list="place-list" required>
                         </div>
                         <div class="form-group">
                             <label>Type of Crop</label>
-                            <input type="text" id="f-crop" placeholder="e.g. Paddy, Maize" required>
+                            <input type="text" id="f-crop" list="crop-list" placeholder="e.g. Paddy, Maize" required>
                         </div>
                         <div class="form-group">
                             <label>No. of Acres</label>
@@ -302,6 +305,7 @@
                             <option value="Fuel">Fuel</option>
                             <option value="Maintenance">Maintenance</option>
                             <option value="Labor">Labor</option>
+                            <option value="Employee Salary">Employee Salary</option>
                             <option value="Miscellaneous">Miscellaneous</option>
                         </select>
                     </div>
@@ -341,6 +345,10 @@
     <button class="fab-add" id="fab-add-btn" title="Add New">
         <i class="ph ph-plus"></i>
     </button>
+
+    <!-- Datalists for Autocomplete -->
+    <datalist id="place-list"></datalist>
+    <datalist id="crop-list"></datalist>
 
     <script src="app.js"></script>
     <script>
