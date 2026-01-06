@@ -288,7 +288,11 @@ document.getElementById('add-farmer-btn').addEventListener('click', () => {
     farmerForm.reset();
     document.getElementById('f-id').value = '';
     document.getElementById('f-date').valueAsDate = new Date();
-    document.getElementById('f-rate').value = '';
+
+    // Auto-fill Rate
+    const defaultRate = localStorage.getItem('hm_default_rate');
+    document.getElementById('f-rate').value = defaultRate || '';
+
     document.getElementById('f-paid').value = 0;
     document.getElementById('f-status').value = 'Pending';
     document.getElementById('f-settled').checked = false;
@@ -782,6 +786,20 @@ function renderCharts() {
     const revData = sortedKeys.map(k => monthlyData[k].revenue);
     const expData = sortedKeys.map(k => monthlyData[k].expenses);
 
+    // Acres Data (monthlyData was just for money, let's add acres to it or re-map)
+    // Actually, let's just re-iterate to be clean or assume monthlyData objects can hold acres too
+    // Let's re-map since I used a simple object structure above
+
+    const monthlyAcres = {};
+    AppData.farmers.forEach(f => {
+        const d = new Date(f.date);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        monthlyAcres[key] = (monthlyAcres[key] || 0) + Number(f.acres);
+    });
+    const acresData = sortedKeys.map(k => monthlyAcres[k] || 0);
+
+    // 2. Prepare Data for Crops (Sum of Acres)
+
     // 2. Prepare Data for Crops (Sum of Acres)
     const cropAcres = {};
     AppData.farmers.forEach(f => {
@@ -865,6 +883,44 @@ function renderCharts() {
                             return ` ${context.label}: ${context.raw.toFixed(2)} Acres`;
                         }
                     }
+                }
+            }
+        }
+    });
+
+
+
+    // 4a. Render Acres Chart (New)
+    const ctxAcres = document.getElementById('acres-chart').getContext('2d');
+    if (window.acresChartInstance) window.acresChartInstance.destroy();
+
+    window.acresChartInstance = new Chart(ctxAcres, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total Acres',
+                data: acresData,
+                backgroundColor: '#3b82f6',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: { label: (c) => ` ${c.raw} Acres` }
+                }
+            },
+            scales: {
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { color: '#94a3b8' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8' }
                 }
             }
         }
@@ -977,6 +1033,19 @@ window.shareBackup = async () => {
         window.location.href = `mailto:?subject=Harvester Backup&body=Please find the attached backup file.`;
     }
 };
+
+// --- Settings Logic ---
+document.getElementById('settings-btn').addEventListener('click', () => {
+    document.getElementById('setting-default-rate').value = localStorage.getItem('hm_default_rate') || '';
+    modalFuncs.open('settings-modal');
+});
+
+document.getElementById('save-settings-btn').addEventListener('click', () => {
+    const rate = document.getElementById('setting-default-rate').value;
+    localStorage.setItem('hm_default_rate', rate);
+    alert('Settings saved!');
+    modalFuncs.close('settings-modal');
+});
 
 // Initial Render
 renderFarmers();

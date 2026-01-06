@@ -31,6 +31,9 @@
                 <i class="ph ph-plant"></i>
                 <h1>Harvester<span>Manager</span></h1>
             </div>
+            <button class="icon-btn theme-toggle" id="settings-btn" title="Settings" style="margin-right: 10px;">
+                <i class="ph ph-gear"></i>
+            </button>
             <button class="theme-toggle" id="theme-toggle" title="Toggle Theme">
                 <i class="ph ph-sun"></i>
             </button>
@@ -216,6 +219,10 @@
                         <h3>Crop Distribution</h3>
                         <canvas id="crop-chart"></canvas>
                     </div>
+                    <div class="card chart-card">
+                        <h3>Acres Harvested (Monthly)</h3>
+                        <canvas id="acres-chart"></canvas>
+                    </div>
                 </div>
             </section>
         </main>
@@ -354,6 +361,25 @@
     <button class="fab-add" id="fab-add-btn" title="Add New">
         <i class="ph ph-plus"></i>
     </button>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" data-close="settings-modal"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="form-group">
+                <label>Default Rate per Acre (₹)</label>
+                <input type="number" id="setting-default-rate" placeholder="e.g. 2200">
+                <small style="color: var(--text-muted); display:block; margin-top:5px;">This rate will be auto-filled
+                    for new records.</small>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="save-settings-btn" style="width:100%">Save Settings</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Datalists for Autocomplete -->
     <datalist id="place-list"></datalist>
